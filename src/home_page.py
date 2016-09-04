@@ -1,10 +1,10 @@
 import pytest
 from selenium.webdriver.firefox.webdriver import WebDriver
 
-from action import Action
-from base_page import BasePage
-from locators import HomePageLoc
-from result_page import ResultPage
+from src.action import Action
+from src.base_page import BasePage
+from src.locators import HomePageLoc
+from src.result_page import ResultPage
 
 
 class HomePage(BasePage):

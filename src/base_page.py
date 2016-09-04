@@ -1,6 +1,6 @@
 from selenium.webdriver.firefox.webdriver import WebDriver
 
-from action import Action
+from src.action import Action
 
 
 class BasePage:

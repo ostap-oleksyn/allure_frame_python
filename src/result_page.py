@@ -3,9 +3,9 @@ import random
 import pytest
 from selenium.webdriver.firefox.webdriver import WebDriver
 
-from action import Action
-from base_page import BasePage
-from locators import HomePageLoc
+from src.action import Action
+from src.base_page import BasePage
+from src.locators import HomePageLoc
 
 
 class ResultPage(BasePage):

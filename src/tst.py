@@ -1,10 +1,10 @@
 import time
 from selenium import webdriver
 
-from action import Action
-from home_page import HomePage
-from locators import HomePageLoc
-from page_action import PageAction
+from src.action import Action
+from src.home_page import HomePage
+from src.locators import HomePageLoc
+from src.page_action import PageAction
 
 
 class Test:
