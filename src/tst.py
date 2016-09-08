@@ -1,13 +1,15 @@
 import time
+
 from selenium import webdriver
 
+from src import log
 from src.action import Action
-from src.home_page import HomePage
 from src.locators import HomePageLoc
 from src.page_action import PageAction
 
 
 class Test:
+
     def setup_method(self, method):
         self.driver = webdriver.Firefox()
         self.driver.maximize_window()
@@ -18,22 +20,16 @@ class Test:
         self.driver.quit()
 
     def test(self):
-        page = PageAction(self.driver)
-        action = Action(self.driver)
-
-        page.open("https://google.com")
-        action.element(HomePageLoc.SEARCH_FIELD).type("python")
-        action.element(HomePageLoc.SEARCH_FIELD).submit()
-
-        t1 = action.element(HomePageLoc.RESULT_LINK).at(3).get_text()
-        t2 = action.element(HomePageLoc.RESULT_LINK).get_text()
+        self.page.open("https://google.com")
+        self.action.element(HomePageLoc.SEARCH_FIELD).type("python")
+        self.action.element(HomePageLoc.SEARCH_FIELD).submit()
+        t1 = self.action.element(HomePageLoc.RESULT_LINK).at(3).get_text()
+        self.page.take_screenshot()
+        t2 = self.action.element(HomePageLoc.RESULT_LINK).get_text()
+        log.message(t1)
+        self.action.element(HomePageLoc.RESULT_LINK).at(10).click()
+        time.sleep(5)
+        self.page.navigate_back()
+        self.action.element(HomePageLoc.RESULT_LINK).click()
         print(t1)
         print(t2)
-
-    def test1(self):
-        self.page.open("https://google.com")
-        home_page = HomePage(self.driver, self.action)
-        result_page = home_page.search_for("python")
-        result_page.click_random_link()
-        time.sleep(5)
-        self.page.take_screenshot()

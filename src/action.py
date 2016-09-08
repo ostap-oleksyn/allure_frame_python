@@ -1,5 +1,3 @@
-import copy
-
 import pytest
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
@@ -9,26 +7,14 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.wait import WebDriverWait
 
 
-def modify_position(func):
-    def inner(*args):
-        locator = copy.copy(args[1])
-        if args[2] != 0 and "?" in locator[1]:
-            locator[1] = args[1][1].replace("?", str(args[2]))
-        elif args[2] != 0 and "?" not in args[1]:
-            raise ValueError("Locator doesn't have a modifier - {}".format(args[1][1]))
-        elif args[2] == 0 and "?" in locator[1]:
-            locator[1] = args[1][1].replace("?", ".")
-        return func(args[0], locator, args[2], args[3])
-
-    return inner
+from src.element import Element
 
 
 class Action:
     def __init__(self, driver: WebDriver):
         self._driver = driver
-        self._locator = None
         self._position = 0
-        self._timeout = 30
+        self._timeout = 5
 
     def element(self, locator):
         self._locator = locator
@@ -42,43 +28,39 @@ class Action:
         self._timeout = timeout
         return self
 
-    @modify_position
-    def _get_element(self, locator, position, timeout):
-        WebDriverWait(self._driver, timeout).until(EC.visibility_of_element_located((By.XPATH, locator[1])),
-                                                   "[{}] > [{}] not visible after {} seconds".format(locator[2],
-                                                                                                     locator[0],
-                                                                                                     timeout))
-
-        element = self._driver.find_element_by_xpath(locator[1])  # type: WebElement
+    def _wait_for_element(self):
+        self._element = Element(self._driver, self._locator, self._position)
+        WebDriverWait(self._driver, self._timeout).until(
+            EC.visibility_of_element_located((By.XPATH, self._element.locator)),
+            "{} is not visible after {} seconds".format(self._element.name, self._timeout))
         self._position = 0
+
+    def _get_element(self):
+        self._wait_for_element()
+        element = self._driver.find_element_by_xpath(self._element.locator)  # type: WebElement
         return element
 
-    @modify_position
-    def _get_elements(self, locator, position, timeout):
-        WebDriverWait(self._driver, timeout).until(EC.visibility_of_element_located((By.XPATH, locator[1])),
-                                                   "[{}] > [{}] not visible after {} seconds".format(locator[2],
-                                                                                                     locator[0],
-                                                                                                     timeout))
-
-        elements = self._driver.find_elements_by_xpath(locator[1])
-        self._position = 0
+    def _get_elements(self):
+        self._wait_for_element()
+        elements = self._driver.find_elements_by_xpath(self._element.locator)
         return elements
 
     def type(self, text):
-        with pytest.allure.step("Typed '{}' into [{}] > [{}]".format(text, self._locator[2], self._locator[0])):
-            self._get_element(self._locator, self._position, self._timeout).send_keys(text)
+        element = self._get_element()
+        with pytest.allure.step("Typed '{}' into {}".format(text, self._element.name)):
+            element.send_keys(text)
 
     def submit(self):
         with pytest.allure.step("Pressed ENTER"):
-            self._get_element(self._locator, self._position, self._timeout).send_keys(Keys.ENTER)
+            self._get_element().send_keys(Keys.ENTER)
 
     def click(self):
-        with pytest.allure.step(
-                "Clicked [{}] > [{}] at position [{}]".format(self._locator[2], self._locator[0], self._position)):
-            self._get_element(self._locator, self._position, self._timeout).click()
+        element = self._get_element()
+        with pytest.allure.step("Clicked {}".format(self._element.name)):
+            element.click()
 
     def get_text(self):
-        return self._get_element(self._locator, self._position, self._timeout).text
+        return self._get_element().text
 
     def get_count(self):
-        return len(self._get_elements(self._locator, self._position, self._timeout))
+        return len(self._get_elements())
